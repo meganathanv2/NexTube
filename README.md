@@ -116,7 +116,7 @@ cd NexTube
 ### 2️⃣ Backend Setup
 
 ```
-cd nexttube-backend
+cd backend
 npm install
 npm run dev
 ```
@@ -124,7 +124,7 @@ npm run dev
 ### 3️⃣ Frontend Setup
 
 ```
-cd nexttube-frontend
+cd frontend
 npm install
 npm run dev
 ```
