@@ -1,5 +1,8 @@
 const User = require("../models/User");
-const { generateAccessToken, generateRefreshToken } = require("../utils/generateToken");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../utils/generateToken");
 
 const getSafeUser = (user) => ({
   id: user._id,
@@ -13,18 +16,24 @@ const getSafeUser = (user) => ({
 const register = async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password) {
-    return res.status(400).json({ message: "Please provide all required fields" });
+    return res
+      .status(400)
+      .json({ message: "Please provide all required fields" });
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 6 characters long" });
   }
 
   try {
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
       if (userExists.email === email.toLowerCase()) {
-        return res.status(400).json({ message: "User with this email already exists" });
+        return res
+          .status(400)
+          .json({ message: "User with this email already exists" });
       }
       return res.status(400).json({ message: "Username already taken" });
     }
@@ -34,6 +43,18 @@ const register = async (req, res) => {
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
     await user.save();
+
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: true, // HTTPS (Render + Vercel)
+      sameSite: "none", // cross-origin
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true, // HTTPS (Render + Vercel)
+      sameSite: "none", // cross-origin
+    });
 
     return res.status(201).json({
       user: getSafeUser(user),
@@ -50,7 +71,9 @@ const register = async (req, res) => {
       return res.status(400).json({ message: `${field} already exists` });
     }
     console.error("Registration error:", error);
-    return res.status(500).json({ message: "Registration failed", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Registration failed", error: error.message });
   }
 };
 
@@ -71,13 +94,27 @@ const login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: true, // HTTPS (Render + Vercel)
+      sameSite: "none", // cross-origin
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true, // HTTPS (Render + Vercel)
+      sameSite: "none", // cross-origin
+    });
+
     return res.json({
       user: getSafeUser(user),
       accessToken,
       refreshToken,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Login failed", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Login failed", error: error.message });
   }
 };
 
@@ -145,11 +182,30 @@ const logout = async (req, res) => {
       user.refreshToken = null;
       await user.save();
     }
+
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
     return res.json({ message: "Logged out" });
   } catch (error) {
     return res.status(500).json({ message: "Logout failed" });
   }
 };
 
-module.exports = { register, login, refreshToken, getProfile, updateProfile, logout };
-
+module.exports = {
+  register,
+  login,
+  refreshToken,
+  getProfile,
+  updateProfile,
+  logout,
+};
