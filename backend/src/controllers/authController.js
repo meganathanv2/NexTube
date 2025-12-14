@@ -16,10 +16,17 @@ const register = async (req, res) => {
     return res.status(400).json({ message: "Please provide all required fields" });
   }
 
+  if (password.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters long" });
+  }
+
   try {
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      if (userExists.email === email.toLowerCase()) {
+        return res.status(400).json({ message: "User with this email already exists" });
+      }
+      return res.status(400).json({ message: "Username already taken" });
     }
 
     const user = await User.create({ username, email, password });
@@ -34,6 +41,15 @@ const register = async (req, res) => {
       refreshToken,
     });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({ message: messages.join(", ") });
+    }
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({ message: `${field} already exists` });
+    }
+    console.error("Registration error:", error);
     return res.status(500).json({ message: "Registration failed", error: error.message });
   }
 };

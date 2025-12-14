@@ -70,13 +70,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const { data } = await api.post("/auth/login", { email, password });
-    persistAuth(data);
+    try {
+      const { data } = await api.post("/auth/login", { email, password });
+      persistAuth(data);
+    } catch (error) {
+      throw error;
+    }
   };
 
   const signup = async (username, email, password) => {
-    const { data } = await api.post("/auth/signup", { username, email, password });
-    persistAuth(data);
+    try {
+      const { data } = await api.post("/auth/signup", { username, email, password });
+      persistAuth(data);
+    } catch (error) {
+      throw error;
+    }
   };
 
   const refreshSession = async () => {

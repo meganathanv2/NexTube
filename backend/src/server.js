@@ -14,6 +14,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const clientOrigin = process.env.CLIENT_URL || "http://localhost:5173";
 
+console.log("CLIENT_URL from env:", process.env.CLIENT_URL);
+console.log("Using origin for CORS:", clientOrigin);
+
 // Database
 connectDB();
 
@@ -22,6 +25,8 @@ app.use(
   cors({
     origin: clientOrigin,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
@@ -47,4 +52,3 @@ app.use((err, _req, res, _next) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
